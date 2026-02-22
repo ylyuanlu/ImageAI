@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // 阿里云 Serverless 部署需要 standalone 输出模式
+  output: 'standalone',
   // 配置外部依赖，避免 webpack 处理 (Next.js 16 新配置方式)
   serverExternalPackages: ['alipay-sdk', 'wechatpay-node-v3'],
   // Turbopack 配置 (Next.js 16 默认启用)
