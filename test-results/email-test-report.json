@@ -1,0 +1,15 @@
+{
+  "test_email": "test_1771298466@example.com",
+  "results": [
+    {
+      "name": "测试执行",
+      "status": false,
+      "message": "Page.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"text=注册\")\n"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1
+  }
+}

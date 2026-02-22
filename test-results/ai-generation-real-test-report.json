@@ -1,0 +1,27 @@
+{
+  "test_type": "AI Generation Real Test",
+  "base_url": "http://localhost:3000",
+  "results": [
+    {
+      "name": "API Key 配置",
+      "status": true,
+      "message": "已配置"
+    },
+    {
+      "name": "代理配置",
+      "status": true,
+      "message": "已配置"
+    },
+    {
+      "name": "图像生成",
+      "status": false,
+      "message": "错误: 500"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 2,
+    "failed": 1
+  },
+  "timestamp": "2026-02-17 15:44:36"
+}

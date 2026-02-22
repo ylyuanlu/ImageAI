@@ -1,0 +1,251 @@
+{
+  "$schema": "./.opencode/schemas/opencode-config.json",
+  "version": "2.0",
+  "lastUpdated": "2026-02-06",
+  "optimization": {
+    "version": "2.2",
+    "description": "技能包最终优化：17个→6个，C方案实施完成",
+    "changes": [
+      "✓ 自治模式配置（置信度0.80，自动修复3次）",
+      "✓ 合并 art-fallback + ui-prototype-generator → design-generator",
+      "✓ 合并 test-runner + security-scan → quality-gate",
+      "✓ 合并 deployer + git-committer + project-memory-builder → AGENTS.md内嵌",
+      "✓ 移除 design-confirmer (功能内嵌AGENTS.md)",
+      "✓ 移除 hotfix-procedure-recorder (功能内嵌AGENTS.md)",
+      "✓ 移除 code-review (AI原生)",
+      "✓ 移除 template-generator (AI原生)",
+      "✓ 设计链路验证：frontend-design(85+) → design-generator(80) → MCP(90+，待接入)"
+    ],
+    "finalSkills": [
+      "product-spec-builder",
+      "ui-prompt-generator",
+      "design-generator",
+      "dev-builder",
+      "quality-gate",
+      "session-manager"
+    ],
+    "total": 6
+  },
+
+  "developer": {
+    "mode": "personal",
+    "git": {
+      "commit": {
+        "autoPush": false,
+        "language": "zh-CN",
+        "conventionalCommits": true
+      }
+    }
+  },
+
+  "instructions": {
+    "version": "2.0",
+    "description": "优化后的6技能核心系统",
+    "list": [
+      "/do",
+      "/fix",
+      "/check",
+      "/deploy",
+      "/ui",
+      "/test",
+      "/review",
+      "/commit",
+      "/status",
+      "/save",
+      "/load"
+    ],
+    "mapping": {
+      "/prd": {
+        "localSkills": ["product-spec-builder"],
+        "globalSkills": [],
+        "note": "需求收集，生成Product-Spec.md和CHANGELOG.md"
+      },
+      "/ui": {
+        "localSkills": ["ui-prompt-generator"],
+        "globalSkills": ["ui-ux-pro-max"],
+        "note": "ui-ux-pro-max提供设计规范(风格/配色/字体)，ui-prompt-generator生成UI-Prompts.md"
+      },
+      "/art": {
+        "localSkills": ["design-generator"],
+        "globalSkills": ["frontend-design"],
+        "fallbackChain": ["frontend-design", "design-generator"],
+        "note": "frontend-design生成高质量HTML(85+分)，降级到design-generator兜底(80分)，MCP图像生成待接入"
+      },
+      "/dev": {
+        "localSkills": ["dev-builder"],
+        "globalSkills": [],
+        "note": "代码开发，包含验证、审查、部署全流程"
+      },
+      "/do": {
+        "localSkills": ["product-spec-builder", "dev-builder", "quality-gate"],
+        "globalSkills": [],
+        "systemSkills": ["intent-recognizer", "preventive-checker", "ai-learning-engine"],
+        "note": "一键执行全流程：需求→开发→质量检查→部署"
+      },
+      "/fix": {
+        "localSkills": ["dev-builder", "quality-gate"],
+        "globalSkills": [],
+        "systemSkills": ["error-prevention-engine"],
+        "note": "自动修复循环，热修复记录内嵌AGENTS.md"
+      },
+      "/check": {
+        "localSkills": [],
+        "globalSkills": [],
+        "note": "AGENTS.md直接检查，读取Project-Memory.md验证功能"
+      },
+      "/deploy": {
+        "localSkills": ["quality-gate"],
+        "globalSkills": ["ci-cd"],
+        "note": "质量检查→AGENTS.md执行部署命令，运维指南AI生成"
+      },
+      "/run": {
+        "localSkills": [],
+        "globalSkills": [],
+        "note": "AGENTS.md执行运行命令，启动项目并验证"
+      },
+      "/test": {
+        "localSkills": ["quality-gate"],
+        "globalSkills": ["test-driven-development"],
+        "note": "quality-gate执行测试，控制台输出摘要"
+      },
+      "/review": {
+        "localSkills": [],
+        "globalSkills": ["requesting-code-review"],
+        "note": "AI原生代码审查，不调用技能包，输出控制台摘要"
+      },
+      "/commit": {
+        "localSkills": [],
+        "globalSkills": [],
+        "note": "AGENTS.md内嵌执行git命令，AI生成提交信息"
+      },
+      "/status": {
+        "localSkills": [],
+        "globalSkills": [],
+        "note": "AGENTS.md直接读取Project-Memory.md"
+      },
+      "/save": {
+        "localSkills": ["session-manager"],
+        "globalSkills": [],
+        "note": "保存检查点到文件"
+      },
+      "/load": {
+        "localSkills": ["session-manager"],
+        "globalSkills": [],
+        "note": "从文件恢复检查点"
+      },
+      "/help": {
+        "localSkills": [],
+        "globalSkills": [],
+        "note": "AGENTS.md显示帮助菜单和指令说明"
+      }
+    }
+  },
+
+  "skills": {
+    "sources": {
+      "local": ".opencode/skills/",
+      "global": "OpenCode全局技能库"
+    },
+    "selectionStrategy": {
+      "rule": "本地技能优先，全局技能补充",
+      "description": "当本地和全局都有实现时，默认使用本地技能。全局技能仅用于：1)本地缺失时兜底 2)提供参考学习 3)特定场景增强",
+      "examples": {
+        "frontend-design": {
+          "local": null,
+          "global": "frontend-design",
+          "decision": "使用全局技能（本地无实现）"
+        },
+        "security-scan": {
+          "local": "security-scan",
+          "global": "security-scan",
+          "decision": "使用本地技能（本地实现优先）"
+        },
+        "ci-cd": {
+          "local": null,
+          "global": "ci-cd",
+          "decision": "仅作为参考学习，不直接执行"
+        }
+      }
+    },
+    "systemSkills": {
+      "intent-recognizer": {
+        "trigger": "beforeExecution",
+        "description": "意图识别"
+      },
+      "ai-learning-engine": {
+        "trigger": "afterExecution",
+        "description": "学习用户偏好"
+      },
+      "preventive-checker": {
+        "trigger": "beforeExecution",
+        "description": "预防性检查"
+      },
+      "error-prevention-engine": {
+        "trigger": "onError",
+        "description": "错误预防"
+      }
+    }
+  },
+
+  "automation": {
+    "do": {
+      "enabled": true,
+      "skipUIForSimpleProjects": true,
+      "simpleProjectThreshold": 3,
+      "autoDeployOnSuccess": false,
+      "confirmBeforeDeploy": true
+    },
+    "quickDev": {
+      "enabled": true
+    },
+    "quickDeploy": {
+      "enabled": false,
+      "requireTest": false,
+      "requireReview": false
+    }
+  },
+
+  "quality": {
+    "test": {
+      "mode": "quick"
+    },
+    "review": {
+      "mode": "simple"
+    },
+    "security": {
+      "enabled": true,
+      "failOn": "high",
+      "scanSAST": true,
+      "scanSCA": true,
+      "scanConfig": true
+    }
+  },
+
+  "workflow": {
+    "mode": "autonomous",
+    "autonomous": {
+      "confidenceThreshold": 0.80,
+      "autoFix": {
+        "enabled": true,
+        "maxRetries": 3,
+        "timeout": 300
+      },
+      "pauseWhen": [
+        "breaking_change",
+        "multiple_solutions",
+        "high_risk_operation"
+      ],
+      "skipWhen": {
+        "highConfidence": true,
+        "knownPattern": true,
+        "iterativeFeature": true
+      }
+    },
+    "learning": {
+      "enabled": true,
+      "adaptAfterProjects": 3,
+      "recordDecisions": true,
+      "optimizeThreshold": true
+    }
+  }
+}

@@ -1,0 +1,335 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// 📝 说明：当前使用 SQLite 进行开发
+// 生产环境请切换回 PostgreSQL：
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 用户表
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  password  String   // 加密存储
+  avatar    String?  // 头像URL
+  role      String   @default("USER") // USER, ADMIN, VIP
+  status    String   @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+
+  // 邮箱验证
+  emailVerified Boolean @default(false)
+  emailVerificationToken String?
+  emailVerificationExpires DateTime?
+
+  // 密码重置
+  passwordResetToken String?
+  passwordResetExpires DateTime?
+
+  // 会员信息
+  subscription Subscription?
+
+  // 生成额度
+  quota       Quota?
+
+  // 关联记录
+  generations Generation[]
+  orders      Order[]
+  customPoses CustomPose[]
+
+  // 时间戳
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastLoginAt DateTime?
+}
+
+// 订阅信息表
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plan      String   @default("FREE") // FREE, MONTHLY, QUARTERLY, YEARLY
+  status    String   @default("ACTIVE") // ACTIVE, CANCELED, PAST_DUE, UNPAID
+
+  // 订阅周期
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  // 支付信息
+  stripeCustomerId   String?
+  stripeSubscriptionId String?
+
+  // 取消订阅
+  cancelAtPeriodEnd Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 用户生成额度表
+model Quota {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 免费试用额度
+  freeQuota       Int      @default(5)
+  freeQuotaUsed   Int      @default(0)
+
+  // 付费额度（订阅期内）
+  paidQuota       Int      @default(0)
+  paidQuotaUsed   Int      @default(0)
+
+  // 额外购买额度
+  extraQuota      Int      @default(0)
+  extraQuotaUsed  Int      @default(0)
+
+  // 总额度计算
+  totalQuota      Int      @default(5)
+  remainingQuota  Int      @default(5)
+
+  // 额度重置时间
+  resetAt         DateTime?
+
+  updatedAt       DateTime @updatedAt
+}
+
+// 生成记录表
+model Generation {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 输入图片 (JSON 字符串存储数组)
+  modelImage      String   // 模特参考图URL
+  outfitImages    String   // 服装搭配图URLs，JSON 数组字符串
+
+  // 生成参数
+  pose        String
+  style       String
+  lighting    String
+  background  String
+  colorTone   String
+  count       Int      @default(1)
+
+  // 关联的自定义姿势（可选）
+  customPoseId String?
+  customPose   CustomPose? @relation("CustomPoseGenerations", fields: [customPoseId], references: [id])
+
+  // 生成结果 (JSON 字符串存储数组)
+  generatedImages String   // 生成的图片URLs，JSON 数组字符串
+
+  // 状态
+  status      String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  error       String?    // 错误信息
+
+  // 元数据
+  prompt      String?    // 使用的提示词
+  metadata    String?    // 额外元数据，JSON 字符串
+  time        String?    // 生成耗时（秒）
+
+  // 时间戳
+  createdAt   DateTime   @default(now())
+  completedAt DateTime?
+
+  @@index([customPoseId])
+}
+
+// 姿势库表
+model Pose {
+  id          String   @id @default(uuid())
+  name        String   @unique // 姿势名称
+  nameEn      String?  // 英文名称
+  category    String   // STANDING, SITTING, WALKING, CASUAL, PROFESSIONAL
+  description String?  // 描述
+  previewUrl  String?  // 预览图URL
+  prompt      String   // AI提示词
+
+  // 排序和状态
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 用户自定义姿势表
+model CustomPose {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 姿势信息
+  name        String   // 姿势名称（用户描述的前20字）
+  description String   // 完整描述
+  imageUrl    String   // 生成的参考图URL
+  thumbnailUrl String? // 缩略图URL
+
+  // 分类和标签
+  category    String   @default("CUSTOM") // CUSTOM, PRESET
+  tags        String?  // JSON数组字符串
+
+  // 元数据
+  prompt      String?  // 使用的AI提示词
+  source      String   @default("TEXT") // TEXT-文本描述, PRESET-基于预设修改
+
+  // 用户交互
+  isFavorite  Boolean  @default(false)
+  useCount    Int      @default(0) // 使用次数
+
+  // 状态
+  isActive    Boolean  @default(true)
+
+  // 关联的生成记录
+  generations Generation[] @relation("CustomPoseGenerations")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// 穿搭模板库表
+model Outfit {
+  id          String   @id @default(uuid())
+  name        String   @unique // 穿搭名称
+  category    String   // SUMMER, WINTER, SPORT, FORMAL, CASUAL, PARTY
+  season      String   // SPRING, SUMMER, AUTUMN, WINTER, ALL_YEAR
+  style       String   // 风格标签
+
+  // 图片
+  imageUrl    String   // 穿搭图URL
+  thumbnailUrl String? // 缩略图URL
+
+  // 描述和标签 (JSON 字符串存储数组)
+  description String?
+  tags        String   // 标签数组，JSON 字符串
+
+  // 推荐度
+  popularity  Int      @default(0)
+  rating      Float    @default(0)
+
+  // 状态
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 会员等级配置表
+model MembershipLevel {
+  id          String   @id @default(uuid())
+  level       String   @unique // BRONZE, SILVER, GOLD, PLATINUM, DIAMOND
+  name        String   // 显示名称
+  price       Float    // 月费价格
+  yearlyPrice Float    // 年费价格
+  
+  // 权益配置
+  monthlyQuota    Int     // 每月生成额度
+  maxResolution   String  // 最大分辨率 1024x1024, 2048x2048
+  priority        Int     @default(0) // 生成优先级
+  commercialUse   Boolean @default(false) // 商业使用权限
+  watermark       Boolean @default(true) // 是否带水印
+  
+  // 其他权益
+  features        String  // 权益列表，JSON 数组
+  
+  sortOrder       Int     @default(0)
+  isActive        Boolean @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // 关联订单
+  orders          Order[]
+}
+
+// 订单表
+model Order {
+  id          String   @id @default(uuid())
+  orderNo     String   @unique // 订单号
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // 订单类型
+  type        String   // MEMBERSHIP-会员, QUOTA-额度充值
+  
+  // 商品信息
+  membershipId String?
+  membership   MembershipLevel? @relation(fields: [membershipId], references: [id])
+  quotaAmount  Int?     // 充值额度数量
+  
+  // 价格信息
+  amount      Float    // 订单金额
+  currency    String   @default("CNY")
+  duration    Int?     // 会员时长（月）
+  
+  // 支付信息
+  payMethod   String?  // ALIPAY, WECHAT
+  payStatus   String   @default("PENDING") // PENDING, PAID, FAILED, CANCELED, REFUNDED
+  payTime     DateTime?
+  payTradeNo  String?  // 第三方支付流水号
+  
+  // 订单状态
+  status      String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, CANCELED
+  
+  // 过期时间（用于未支付订单自动关闭）
+  expireAt    DateTime
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联支付记录
+  payments    Payment[]
+}
+
+// 支付记录表
+model Payment {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId      String
+  
+  // 支付信息
+  amount      Float    // 金额
+  currency    String   @default("CNY")
+  
+  // 第三方支付信息
+  payMethod   String   // ALIPAY, WECHAT
+  payTradeNo  String?  // 第三方流水号
+  
+  // 支付状态
+  status      String   @default("PENDING") // PENDING, SUCCESS, FAILED, CANCELED
+  
+  // 支付详情（JSON）
+  payData     String?  // 支付请求数据
+  notifyData  String?  // 支付回调数据
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  paidAt      DateTime?
+  
+  @@index([orderId])
+  @@index([userId])
+}
+
+// 系统配置表
+model Config {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}

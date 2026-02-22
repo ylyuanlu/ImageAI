@@ -1,0 +1,31 @@
+{
+  "test_type": "AI Generation Configuration Test",
+  "results": [
+    {
+      "name": "API 响应",
+      "status": true,
+      "message": "状态码: 404"
+    },
+    {
+      "name": "服务器状态",
+      "status": true,
+      "message": "服务器运行正常"
+    },
+    {
+      "name": "API Key 配置",
+      "status": true,
+      "message": "已配置: AIzaSyCIIInBgwH...auerUHOBeY"
+    },
+    {
+      "name": "代理配置",
+      "status": true,
+      "message": "已配置: http://127.0.0.1:31181"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0
+  },
+  "timestamp": "2026-02-17 15:33:02"
+}

@@ -1,0 +1,49 @@
+{
+  "name": "imageai-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "ruff check . || true"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.750.0",
+    "@aws-sdk/s3-request-presigner": "^3.750.0",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^5.22.0",
+    "@tailwindcss/forms": "^0.5.11",
+    "@types/ali-oss": "^6.16.11",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "25.1.0",
+    "@types/node-fetch": "^2.6.13",
+    "@types/react": "19.2.10",
+    "ali-oss": "^6.22.0",
+    "alipay-sdk": "^4.14.0",
+    "autoprefixer": "^10.4.24",
+    "axios": "^1.8.2",
+    "bcryptjs": "^3.0.3",
+    "dashscope": "^1.0.1",
+    "graceful-fs": "^4.2.11",
+    "https-proxy-agent": "^7.0.6",
+    "jsonwebtoken": "^9.0.3",
+    "next": "^15.1.6",
+    "node-fetch": "^2.7.0",
+    "nodemailer": "^8.0.1",
+    "postcss": "^8.5.6",
+    "prisma": "^5.22.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "resend": "^6.9.2",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.0.0",
+    "undici": "^6.23.0",
+    "wechatpay-node-v3": "^2.2.1",
+    "zustand": "^5.0.10"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}

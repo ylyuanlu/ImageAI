@@ -1,0 +1,32 @@
+{
+  "test_email": "test_1771313048@example.com",
+  "base_url": "http://localhost:3000",
+  "results": [
+    {
+      "name": "用户注册",
+      "status": true,
+      "message": "注册成功，请检查邮箱完成验证（开发模式：验证链接已打印到控制台）"
+    },
+    {
+      "name": "验证邮件生成",
+      "status": true,
+      "message": "已生成验证链接"
+    },
+    {
+      "name": "重新发送验证邮件",
+      "status": true,
+      "message": "验证邮件已发送（开发模式：验证链接已打印到控制台）"
+    },
+    {
+      "name": "忘记密码邮件",
+      "status": true,
+      "message": "密码重置链接已发送到您的邮箱"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0
+  },
+  "timestamp": "2026-02-17 15:24:11"
+}
