@@ -1,6 +1,5 @@
 # 阿里云 Serverless 应用平台 (CAP) 部署配置
-# 本文件用于阿里云 Serverless Devs CLI 部署
-# 参考文档: https://www.aliyun.com/product/serverless-devs
+# 使用容器镜像部署 Next.js 应用
 
 edition: 3.0.0
 name: imageai-app
@@ -8,61 +7,40 @@ access: default
 
 vars:
   region: cn-hangzhou
-  serviceName: imageai-service
-  functionName: imageai-function
 
 resources:
-  imageai_service:
-    component: fc3
-    props:
-      region: ${vars.region}
-      serviceName: ${vars.serviceName}
-      description: ImageAI Next.js 应用服务
-      
   imageai_function:
     component: fc3
     props:
       region: ${vars.region}
-      serviceName: ${vars.serviceName}
-      functionName: ${vars.functionName}
+      functionName: imageai-function
       description: ImageAI Next.js 函数
-      runtime: custom
+      # 使用容器镜像部署
+      runtime: custom-container
       cpu: 1
       memorySize: 2048
       diskSize: 512
-      timeout: 60
+      timeout: 120
       instanceConcurrency: 100
-      # 环境变量将在阿里云控制台配置，这里只定义结构
+      # 容器镜像配置 - 使用 Docker Hub 公共镜像
+      customContainerConfig:
+        image: ylyuanlu/imageai:latest
+        port: 3000
+      # 环境变量
       environmentVariables:
         NODE_ENV: production
-        # 数据库 - 使用现有的 Neon PostgreSQL
-        DATABASE_URL: ${env.DATABASE_URL}
-        # JWT 配置
-        JWT_SECRET: ${env.JWT_SECRET}
-        JWT_EXPIRES_IN: ${env.JWT_EXPIRES_IN}
-        # AI API - 通义千问
-        TONGYI_API_KEY: ${env.TONGYI_API_KEY}
-        # 应用配置
-        NEXT_PUBLIC_APP_URL: ${env.NEXT_PUBLIC_APP_URL}
-        NEXT_PUBLIC_APP_NAME: ${env.NEXT_PUBLIC_APP_NAME}
-        # 文件存储 - 阿里云 OSS（推荐）
-        ALIYUN_ACCESS_KEY_ID: ${env.ALIYUN_ACCESS_KEY_ID}
-        ALIYUN_ACCESS_KEY_SECRET: ${env.ALIYUN_ACCESS_KEY_SECRET}
-        ALIYUN_OSS_REGION: ${env.ALIYUN_OSS_REGION}
-        ALIYUN_OSS_BUCKET: ${env.ALIYUN_OSS_BUCKET}
-        # 邮件服务
-        RESEND_API_KEY: ${env.RESEND_API_KEY}
-        FROM_EMAIL: ${env.FROM_EMAIL}
-        FROM_NAME: ${env.FROM_NAME}
-        # 功能开关
-        ENABLE_REGISTRATION: ${env.ENABLE_REGISTRATION}
-        ENABLE_PAYMENT: ${env.ENABLE_PAYMENT}
-      customRuntimeConfig:
-        command:
-          - node
-          - server.js
-        port: 3000
-      code: ./
+        DATABASE_URL: postgresql://neondb_owner:npg_cip6ngWvR1qE@ep-raspy-bread-a1q9uuho-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+        JWT_SECRET: ftSN3SXO1yAIklAVKOA13gY6gP/54JfJ0JDoT4hKGY8=
+        JWT_EXPIRES_IN: "7d"
+        TONGYI_API_KEY: sk-777a9155d80a4703aa169c7f41947dcd
+        NEXT_PUBLIC_APP_URL: https://imageai-function-cn-hangzhou.fcapp.run
+        NEXT_PUBLIC_APP_NAME: ImageAI
+        RESEND_API_KEY: re_FFXsxDYW_JucqzmiLMP1osaxUsbCBy9Gs
+        FROM_EMAIL: onboarding@resend.dev
+        FROM_NAME: ImageAI
+        ENABLE_REGISTRATION: "true"
+        ENABLE_PAYMENT: "false"
+      # 触发器
       triggers:
         - triggerName: httpTrigger
           triggerType: http
@@ -74,10 +52,3 @@ resources:
               - PUT
               - DELETE
               - OPTIONS
-      customDomains:
-        - domainName: auto
-          protocol: HTTP
-          routeConfigs:
-            - path: /*
-              serviceName: ${vars.serviceName}
-              functionName: ${vars.functionName}

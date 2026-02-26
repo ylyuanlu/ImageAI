@@ -1,0 +1,74 @@
+#!/bin/bash
+# 阿里云 FC Custom Runtime Bootstrap 文件
+# 安装并使用 Node.js 16（兼容旧版 GLIBC）
+
+echo "=========================================="
+echo "Starting bootstrap..."
+echo "Current directory: $(pwd)"
+echo "Current user: $(whoami)"
+echo "=========================================="
+
+# 使用 Node.js 16（最后一个支持旧版 GLIBC 的版本）
+NODE_VERSION="16.20.2"
+NODE_DIR="/tmp/node-v${NODE_VERSION}-linux-x64"
+NODE_TAR="node-v${NODE_VERSION}-linux-x64.tar.xz"
+NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TAR}"
+
+# 检查是否已经安装
+if [ -f "${NODE_DIR}/bin/node" ]; then
+    echo "Node.js ${NODE_VERSION} already installed"
+else
+    echo "Installing Node.js ${NODE_VERSION}..."
+    cd /tmp
+    
+    # 下载 Node.js
+    echo "Downloading from ${NODE_URL}..."
+    curl -fsSL "${NODE_URL}" -o "${NODE_TAR}" 2>/dev/null || wget -q "${NODE_URL}" -O "${NODE_TAR}" 2>/dev/null
+    
+    if [ $? -ne 0 ] || [ ! -f "${NODE_TAR}" ]; then
+        echo "ERROR: Failed to download Node.js"
+        # 尝试使用系统自带的 node
+        if command -v node &> /dev/null; then
+            echo "Using system Node.js: $(node -v)"
+        else
+            exit 1
+        fi
+    else
+        # 解压
+        echo "Extracting..."
+        tar -xf "${NODE_TAR}"
+        
+        if [ $? -ne 0 ]; then
+            echo "ERROR: Failed to extract Node.js"
+            exit 1
+        fi
+        
+        echo "Node.js installed successfully"
+    fi
+fi
+
+# 设置 Node.js 路径
+if [ -f "${NODE_DIR}/bin/node" ]; then
+    export PATH="${NODE_DIR}/bin:${PATH}"
+fi
+
+# 验证 Node.js 版本
+echo "=========================================="
+echo "Node.js version: $(node -v 2>&1)"
+echo "=========================================="
+
+# 返回代码目录
+cd /code
+echo "Working directory: $(pwd)"
+
+# 检查 server.js 是否存在
+if [ -f ".next/standalone/server.js" ]; then
+    echo "Found server.js, starting Next.js..."
+    echo "=========================================="
+    exec node .next/standalone/server.js
+else
+    echo "ERROR: server.js not found!"
+    echo "Contents of .next/:"
+    ls -la .next/ 2>/dev/null || echo ".next/ directory not found"
+    exit 1
+fi
