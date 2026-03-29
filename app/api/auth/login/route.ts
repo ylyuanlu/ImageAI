@@ -15,9 +15,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 查找用户
-    const user = await prisma.user.findUnique({
-      where: { email }
+    // 查找用户 - 支持通过邮箱或用户名登录
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { username: email } // 当输入为用户名时，使用username字段查找
+        ]
+      }
     })
 
     if (!user) {

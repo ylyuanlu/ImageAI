@@ -58,6 +58,14 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 
+# Vercel pulled environment files (real secrets)
+.env.production
+.env.preview
+.env.development
+
+# Keep example/template files
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -111,3 +119,6 @@ DEV-*.md
 !README.md
 !SECURITY.md
 !DEPLOYMENT.md
+
+.vercel
+.env*.local

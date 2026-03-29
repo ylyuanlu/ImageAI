@@ -275,7 +275,7 @@ function LoginForm({ onClose, login }: { onClose: () => void; login: (email: str
     
     if (result.success) {
       onClose();
-      window.location.reload();
+      // 登录成功后不需要刷新页面，因为已经通过setUser更新了状态
     } else {
       setError(result.error || '登录失败');
     }
@@ -368,7 +368,7 @@ function SignupForm({ onClose, register }: { onClose: () => void; register: (ema
     
     if (result.success) {
       onClose();
-      window.location.reload();
+      // 注册成功后不需要刷新页面，因为已经通过setUser更新了状态
     } else {
       setError(result.error || '注册失败');
     }

@@ -46,8 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 获取当前用户信息
-  const fetchUser = useCallback(async () => {
+  // 获取当前用户信息（仅在需要时调用，不在首页自动调用）
+  const fetchUser = useCallback(async (silent: boolean = false) => {
     try {
       const response = await fetch('/api/auth/me', {
         credentials: 'include',
@@ -58,18 +58,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
       } else {
         setUser(null);
+        // 静默模式下不输出错误（未登录是正常状态）
+        if (!silent && response.status !== 401) {
+          console.error('获取用户信息失败:', response.status);
+        }
       }
     } catch (error) {
-      console.error('获取用户信息失败:', error);
+      if (!silent) {
+        console.error('获取用户信息失败:', error);
+      }
       setUser(null);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // 初始加载
+  // 初始加载 - 静默模式，自动获取用户信息
+  // 不管是否有cookie，都尝试获取用户信息，因为cookie可能是HttpOnly的
   useEffect(() => {
-    fetchUser();
+    fetchUser(true);
   }, [fetchUser]);
 
   // 登录

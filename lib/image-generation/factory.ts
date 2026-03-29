@@ -162,6 +162,7 @@ export function initializeFromEnv(): void {
     if (process.env.TONGYI_API_KEY) {
         config.providers[ProviderType.TONGYI] = {
             apiKey: process.env.TONGYI_API_KEY,
+            baseUrl: process.env.TONGYI_API_ENDPOINT || 'https://dashscope.aliyuncs.com',
             timeout: parseInt(process.env.TONGYI_TIMEOUT || '180000'),
             maxRetries: parseInt(process.env.TONGYI_MAX_RETRIES || '2'),
             model: process.env.TONGYI_MODEL

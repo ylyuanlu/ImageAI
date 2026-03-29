@@ -17,6 +17,7 @@ import {
  */
 interface TongyiConfig extends ProviderConfig {
     apiKey: string;
+    baseUrl?: string;  // API 端点地址
     model?: string;  // 默认使用的模型
 }
 
@@ -41,11 +42,19 @@ export class TongyiProvider implements ImageGenerationProvider {
         this.config = {
             timeout: 180000,
             maxRetries: 2,
+            baseUrl: 'https://dashscope.aliyuncs.com',  // 默认国内版
             ...config
         };
         if (config.model) {
             this.currentModel = config.model;
         }
+    }
+
+    /**
+     * 获取 API 基础 URL
+     */
+    private getBaseUrl(): string {
+        return this.config.baseUrl || 'https://dashscope.aliyuncs.com';
     }
 
     /**
@@ -78,10 +87,18 @@ export class TongyiProvider implements ImageGenerationProvider {
     }
 
     /**
+     * 获取清理后的 API Key
+     */
+    private getCleanApiKey(): string {
+        return this.config.apiKey?.replace(/^\uFEFF/, '').replace(/\r?\n/g, '').trim() || '';
+    }
+
+    /**
      * 验证配置
      */
     validateConfig(): boolean {
-        return !!(this.config.apiKey && this.config.apiKey.startsWith('sk-'));
+        const cleanKey = this.getCleanApiKey();
+        return !!(cleanKey && cleanKey.startsWith('sk-'));
     }
 
     /**
@@ -282,7 +299,7 @@ export class TongyiProvider implements ImageGenerationProvider {
         }, null, 2));
         console.log('========================================');
 
-        const result = await this.callApi('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', requestBody);
+        const result = await this.callApi(`${this.getBaseUrl()}/api/v1/services/aigc/multimodal-generation/generation`, requestBody);
         
         console.log('[TongyiProvider] API 返回结果:');
         console.log('状态:', result.output?.choices?.[0]?.finish_reason || 'unknown');
@@ -321,7 +338,7 @@ export class TongyiProvider implements ImageGenerationProvider {
             }
         };
 
-        const result = await this.callApi('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', requestBody);
+        const result = await this.callApi(`${this.getBaseUrl()}/api/v1/services/aigc/multimodal-generation/generation`, requestBody);
         return this.parseResult(result, 'qwen-image-edit-plus');
     }
 
@@ -349,7 +366,7 @@ export class TongyiProvider implements ImageGenerationProvider {
             }
         };
 
-        const result = await this.callApi('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', requestBody);
+        const result = await this.callApi(`${this.getBaseUrl()}/api/v1/services/aigc/multimodal-generation/generation`, requestBody);
         return this.parseResult(result, 'qwen-image-edit');
     }
 
@@ -387,10 +404,10 @@ export class TongyiProvider implements ImageGenerationProvider {
         console.log('尺寸:', requestBody.parameters.size);
         console.log('提示词长度:', prompt.length);
 
-        const result = await this.callApi('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', requestBody);
-        
+        const result = await this.callApi(`${this.getBaseUrl()}/api/v1/services/aigc/multimodal-generation/generation`, requestBody);
+
         console.log('[TongyiProvider] 文生图成功, requestId:', result.request_id);
-        
+
         return this.parseResult(result, 'qwen-image-max');
     }
 
@@ -411,7 +428,7 @@ export class TongyiProvider implements ImageGenerationProvider {
         };
 
         // 万相使用异步API
-        const response = await this.callApi('https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis', requestBody, true);
+        const response = await this.callApi(`${this.getBaseUrl()}/api/v1/services/aigc/text2image/image-synthesis`, requestBody, true);
         const taskId = response.output?.task_id;
         
         if (!taskId) {
@@ -433,8 +450,9 @@ export class TongyiProvider implements ImageGenerationProvider {
      * 调用 API
      */
     private async callApi(url: string, body: any, isAsync: boolean = false): Promise<any> {
+        const cleanKey = this.getCleanApiKey();
         const headers: Record<string, string> = {
-            'Authorization': `Bearer ${this.config.apiKey}`,
+            'Authorization': `Bearer ${cleanKey}`,
             'Content-Type': 'application/json'
         };
 
@@ -517,9 +535,9 @@ export class TongyiProvider implements ImageGenerationProvider {
             await this.delay(1000);
 
             const response = await fetch(
-                `https://dashscope.aliyuncs.com/api/v1/tasks/${taskId}`,
+                `${this.getBaseUrl()}/api/v1/tasks/${taskId}`,
                 {
-                    headers: { 'Authorization': `Bearer ${this.config.apiKey}` }
+                    headers: { 'Authorization': `Bearer ${this.getCleanApiKey()}` }
                 }
             );
 
@@ -584,11 +602,11 @@ export class TongyiProvider implements ImageGenerationProvider {
         try {
             // 尝试一个简单的请求来检查服务状态
             const response = await fetch(
-                'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation',
+                `${this.getBaseUrl()}/api/v1/services/aigc/multimodal-generation/generation`,
                 {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${this.config.apiKey}`,
+                        'Authorization': `Bearer ${this.getCleanApiKey()}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({

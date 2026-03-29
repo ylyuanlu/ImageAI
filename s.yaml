@@ -22,10 +22,13 @@ resources:
       diskSize: 512
       timeout: 120
       instanceConcurrency: 100
-      # 容器镜像配置 - 使用 Docker Hub 公共镜像
+      # 容器镜像配置 - 使用阿里云 ACR 镜像
       customContainerConfig:
-        image: ylyuanlu/imageai:latest
+        image: registry.cn-hangzhou.aliyuncs.com/ylyuanlu/imageai:latest
         port: 3000
+        command:
+          - node
+          - .next/standalone/server.js
       # 环境变量
       environmentVariables:
         NODE_ENV: production
@@ -40,6 +43,8 @@ resources:
         FROM_NAME: ImageAI
         ENABLE_REGISTRATION: "true"
         ENABLE_PAYMENT: "false"
+      # 代码目录
+      code: ./
       # 触发器
       triggers:
         - triggerName: httpTrigger
